@@ -166,6 +166,8 @@ $.fn.filterableDataTable = function(options){
 			var title = $('.slick-datatable-filters th', table).eq($(api.column(colIdx).header()).index()).text();
 			var cell  = $('.slick-datatable-filters th', table).eq($(api.column(colIdx).header()).index()).empty();
 
+			$(cell).css('vertical-align', 'top');
+
 			//FORMAT HTML5 DATA ATTRIBUTES
 			[].forEach.call($(cell)[0].attributes, function(attr) { if(/^data-/.test(attr.name)) $(cell).data(attr.name.substr(5).replace(/-(.)/g, function ($0, $1) { return $1.toUpperCase(); }), attr.value); });
 
@@ -215,14 +217,15 @@ $.fn.filterableDataTable = function(options){
 				else if(colInfo.sfRange == 'numeric'){
 					var rangeName 		= colInfo.data;
 					var dbField 		= colInfo.name;
-					var rangeWrap       = $('<div class="row"></div>').appendTo($(cell));
-					var startRangeCol   = $('<div class="col pe-1"></div>').appendTo($(rangeWrap));
-					var endRangeCol     = $('<div class="col ps-1"></div>').appendTo($(rangeWrap));
+					//var rangeWrap       = $('<div class="row"></div>').appendTo($(cell));
+					var rangeWrap       = $('<div class="slick-filter-range-row"></div>').appendTo($(cell));
+					var startRangeCol   = $('<div class="slick-filter-range-col mb-1"></div>').appendTo($(rangeWrap));
+					var endRangeCol     = $('<div class="slick-filter-range-col"></div>').appendTo($(rangeWrap));
 					
 
 					if(typeof(options.serverSide) !== 'undefined' && options.serverSide == true){
-						var startRangeInput = $('<input type="number" step="any" class="form-control form-control-sm p-1" placeholder="From" id="'+rangeName+'-start">').on('keyup change search', function(e){ api.draw(); }).appendTo($(startRangeCol));
-						var endRangeInput   = $('<input type="number" step="any" class="form-control form-control-sm p-1" placeholder="To" id="'+rangeName+'-end">').on('keyup change search', function(e){ api.draw(); }).appendTo($(endRangeCol));
+						var startRangeInput = $('<input type="number" step="any" class="form-control form-control-sm p-1" placeholder="From '+title+'" id="'+rangeName+'-start">').on('keyup change search', function(e){ api.draw(); }).appendTo($(startRangeCol));
+						var endRangeInput   = $('<input type="number" step="any" class="form-control form-control-sm p-1" placeholder="To '+title+'" id="'+rangeName+'-end">').on('keyup change search', function(e){ api.draw(); }).appendTo($(endRangeCol));
 
 						ranges.push({
 							col 	: colIdx,
@@ -262,9 +265,10 @@ $.fn.filterableDataTable = function(options){
 
 					var rangeName 		= colInfo.data;
 					var dbField 		= colInfo.name;
-					var rangeWrap       = $('<div class="row"></div>').appendTo($(cell));
-					var startRangeCol   = $('<div class="col-6 pe-1"></div>').appendTo($(rangeWrap));
-					var endRangeCol     = $('<div class="col-6 ps-1"></div>').appendTo($(rangeWrap));
+					//var rangeWrap       = $('<div class="row"></div>').appendTo($(cell));
+					var rangeWrap       = $('<div class="slick-filter-range-row"></div>').appendTo($(cell));
+					var startRangeCol   = $('<div class="slick-filter-range-col mb-1"></div>').appendTo($(rangeWrap));
+					var endRangeCol     = $('<div class="slick-filter-range-col"></div>').appendTo($(rangeWrap));
 					
 
 					if(typeof(options.serverSide) !== 'undefined' && options.serverSide == true){
