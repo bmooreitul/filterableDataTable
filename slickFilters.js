@@ -242,34 +242,24 @@ $.fn.slickFilters = function(options) {
 					var startRangeCol 	= $('<div class="slick-filter-range-col mb-1"></div>').appendTo($(rangeWrap));
 					var endRangeCol 	= $('<div class="slick-filter-range-col"></div>').appendTo($(rangeWrap));
 
+					var startRangeInput = $('<input type="number" step="any" class="form-control form-control-sm p-1" placeholder="From ' + title + '" id="' + rangeName + '-start">').on('keyup change search', function(e) { api.draw(); }).appendTo($(startRangeCol));
+					var endRangeInput = $('<input type="number" step="any" class="form-control form-control-sm p-1" placeholder="To ' + title + '" id="' + rangeName + '-end">').on('keyup change search', function(e) { api.draw(); }).appendTo($(endRangeCol));
 
-					if (typeof(options.serverSide) !== 'undefined' && options.serverSide == true) {
-						var startRangeInput = $('<input type="number" step="any" class="form-control form-control-sm p-1" placeholder="From ' + title + '" id="' + rangeName + '-start">').on('keyup change search', function(e) {
-							api.draw();
-						}).appendTo($(startRangeCol));
-						var endRangeInput = $('<input type="number" step="any" class="form-control form-control-sm p-1" placeholder="To ' + title + '" id="' + rangeName + '-end">').on('keyup change search', function(e) {
-							api.draw();
-						}).appendTo($(endRangeCol));
+					if (typeof(options.serverSide) !== 'undefined' && options.serverSide == true) {										
 
 						ranges.push({
-							col: colIdx,
-							search: {
-								data: colInfo.data,
-								name: colInfo.name
+							col 		: colIdx,
+							search 		: {
+								data 	: colInfo.data,
+								name 	: colInfo.name
 							},
-							start: $(startRangeInput),
-							end: $(endRangeInput),
-							type: 'numeric',
+							start 		: $(startRangeInput),
+							end 		: $(endRangeInput),
+							type 		: 'numeric',
 						});
 					}
 					else {
-						var startRangeInput = $('<input type="search" class="form-control form-control-sm p-1" placeholder="From" id="' + rangeName + '-start">').on('keyup change search', function(e) {
-							api.column(colIdx).search(this.value).draw();
-						}).appendTo($(startRangeCol));
-						var endRangeInput = $('<input type="search" class="form-control form-control-sm p-1" placeholder="To" id="' + rangeName + '-end">').on('keyup change search', function(e) {
-							api.column(colIdx).search(this.value).draw();
-						}).appendTo($(endRangeCol));
-
+						
 
 						$.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
 							var min 			= parseInt($(startRangeInput).val(), 10);
