@@ -1,3 +1,115 @@
+/*
+	============================ EXAMPLE JAVASCRIPT =======================
+
+	//USE .slickFilters INSTEAD OF .DataTable
+
+	//RANGES ARE SET IN THE COLUMN DEFINITIONS
+	//SINGLE SLICK FILTERS ARE SET IN THE COLUMN DEFINITIONS USING sfFilter
+
+	//SUPPORTED COLUMN DEFINITIONS
+	sfRange
+		alias of "data-sf-range" 
+		accepts: 
+			- "date"
+			- "numeric"
+	sfFilter
+		alias of "data-sf-filter"
+		accepts: 
+			- "date"
+			- "numeric"
+			- "select"
+
+	sfSelectOptions 
+		alias of "data-sf-select-options" 
+		accepts: 
+			- array of values, 
+			- object of key value pairs
+
+	DTInvoicesTable = $('#invoices-data-table').slickFilters({
+		ajax: {
+			url: "{{ route('admin-all-invoices.dt') }}",
+			type: 'post',
+			data: function (d) {
+            	d.type 					= $("#filter-invoice-type").val();
+            	d.corporationSearch 	= $('[name="corporationSearch"]').val();
+            	d.invoiceSearch 		= $('[name="invoiceSearch"]').val();
+            	d.invoiceSearchAmount 	= $('[name="invoiceSearchAmount"]').val();
+            	d.startDate 			= $('[name="startDate"]').val();
+            	d.endDate 				= $('[name="endDate"]').val();
+            	d.dateType 				= $('[name="dateType"]').val();
+            },
+		},
+		columns: [
+			{data: 'doc_number'},
+			{data: 'customer_name', name: 'invoices.customer_name'},
+			{data: 'created_at', name: 'invoices.created_at', sfRange: 'date'},
+			{data: 'invoice_due', name: 'invoices.invoice_due', sfFilter: 'date'},
+			{data: 'sent_at', name: 'invoices.sent_at'},
+			{data: 'amount', name: 'invoices.total_amount', sfRange: 'numeric'},
+			{data: 'invoice_status', name: 'invoices.invoice_status'},
+			{data: 'action', 'sortable': false},
+		],
+		order: [
+			[2, 'desc']
+		],
+	})
+
+	====================== HTML DATA ATTRIBUTE OPTIONS ================
+
+	data-sf-range="{type}" type can be one of (date,numeric)
+	data-sf-filter="{type}" type can be one of (date,numeric,select)
+	data-sf-select-options="{options}" options can be a json object of associative key value pairs or an array of values
+
+	============================ EXAMPLE HTML =======================
+
+	//COLUMN DEFINITIONS CAN BE DEFINED USING A data-* ATTRIBUTE ON A HEADER COLUMN (SEE Invoice # COLUMN)
+
+	<table class="table p-0 m-0" id="invoices-data-table">
+		<thead>
+			<th data-name="invoices.doc_number">Invoice #</th>
+			<th>Corporation</th>
+			<th>Created</th>
+			<th>Due</th>
+			<th>Sent</th>
+			<th>Amount</th>
+			<th>Status</th>
+			<th data-filterable="false" data-sortable="false"></th>
+		</thead>
+	</table>
+
+
+	======================== LARAVEL DATATABLES RANGE FILTERING ================
+
+	$query = \App\Models\SomeModel::query();
+
+	//CHECK FOR RANGE FILTERING
+	if(is_array(request()->_ranges) && !empty(request()->_ranges)){
+
+		//LOOP THROUGH RANGES
+		foreach(request()->_ranges as $colKey => $rangeData){
+
+			//CHECK FOR START RANGE
+			if(isset($rangeData['start']) && strlen($rangeData['start'])){
+
+				//NUMERIC RANGE
+				if($rangeData['type'] == 'numeric') $query->where($rangeData['search']['name'], '>=', $rangeData['start']);
+
+				//DATE RANGE
+				elseif($rangeData['type'] == 'date') $query->where($rangeData['search']['name'], '>=', \Carbon\Carbon::parse($rangeData['start']));
+			}
+
+			//CHECK FOR END RANGE
+			if(isset($rangeData['end']) && strlen($rangeData['end'])){
+
+				//NUMERIC RANGE
+				if($rangeData['type'] == 'numeric') $query->where($rangeData['search']['name'], '<=', $rangeData['end']);
+
+				//DATE RANGE
+				elseif($rangeData['type'] == 'date') $query->where($rangeData['search']['name'], '<=', \Carbon\Carbon::parse($rangeData['end']));
+			}
+		}
+	}
+*/
 $.fn.slickFilters = function(options) {
 
 	var defaults = {
@@ -18,6 +130,8 @@ $.fn.slickFilters = function(options) {
 		},
 		dom: "<'row' <'col'>>t<'row p-3' <'col'i><'col text-end align-items-top'l><'col-auto'p>>",
 	}
+
+	if(typeof(options) !== 'object') options = {};
 
 	//OVERRIDE SERVERSIDE
 	if (typeof(options.ajax) === 'undefined') {
@@ -46,6 +160,8 @@ $.fn.slickFilters = function(options) {
 		//GET THE API
 		var api = new $.fn.dataTable.Api(settings);
 
+		var setColInfo = false;
+
 		//LOOP THROUGH THE FIRST ROW OF EACH COLUMN
 		api.columns().eq(0).each(function(colIdx) {
 
@@ -68,8 +184,21 @@ $.fn.slickFilters = function(options) {
 			//DEFAULT TO NO FILTER RENDERED
 			var filterRendered = false;
 
+			if(typeof(options.columns) == 'undefined'){
+				setColInfo = true;
+				options.columns = [];								
+			}
+
+			if(setColInfo){
+				options.columns[colIdx] = $(cell).data();
+			}
+
+
+
 			//IF FILTERABLE
 			if (filterable) {
+
+
 
 				//GET THE COLUMN DATA
 				colInfo = $.extend(true, $(cell).data(), options.columns[colIdx]);
