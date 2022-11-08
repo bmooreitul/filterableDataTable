@@ -173,10 +173,20 @@ $.fn.slickFilters = function(options) {
 			$(cell).css('vertical-align', 'top');
 
 			//FORMAT HTML5 DATA ATTRIBUTES
-			[].forEach.call($(cell)[0].attributes, function(attr) {
+			[].forEach.call($(cell)[0].attributes, function(attr) {	
+
+				var val = attr.value;
+				try{
+					var tempVal = $.parseJSON(val);
+					val = tempVal;
+				}
+				catch{
+					//SILENT
+				}							
+
 				if (/^data-/.test(attr.name)) $(cell).data(attr.name.substr(5).replace(/-(.)/g, function($0, $1) {
 					return $1.toUpperCase();
-				}), attr.value);
+				}), val);
 			});
 
 			//FLAG AS FILTERABLE OR NOT
