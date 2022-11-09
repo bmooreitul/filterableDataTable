@@ -217,6 +217,8 @@ $.fn.slickFilters = function(options) {
 				//HANDLE SELECT FILTERS
 				if (colInfo.sfFilter == 'select') {
 
+					
+
 					if (typeof(colInfo.sfSelectOptions) == 'object') {
 
 						//HANDLE AUTOCOMPLETE
@@ -293,8 +295,8 @@ $.fn.slickFilters = function(options) {
 					var startRangeCol 	= $('<div class="slick-filter-range-col mb-1"></div>').appendTo($(rangeWrap));
 					var endRangeCol 	= $('<div class="slick-filter-range-col"></div>').appendTo($(rangeWrap));
 
-					var startRangeInput = $('<input type="date" class="form-control form-control-sm p-1" placeholder="From" id="' + rangeName + '-start">').on('keyup change search', function(e) { api.draw(); }).appendTo($(startRangeCol));
-					var endRangeInput 	= $('<input type="date" class="form-control form-control-sm p-1" placeholder="To" id="' + rangeName + '-end">').on('keyup change search', function(e) { api.draw(); }).appendTo($(endRangeCol));
+					var startRangeInput = $('<input type="date" class="form-control form-control-sm p-1" placeholder="From" id="' + rangeName + '-start" onfocus="this.showPicker()">').on('keyup change search', function(e) { api.draw(); }).appendTo($(startRangeCol));
+					var endRangeInput 	= $('<input type="date" class="form-control form-control-sm p-1" placeholder="To" id="' + rangeName + '-end" onfocus="this.showPicker()">').on('keyup change search', function(e) { api.draw(); }).appendTo($(endRangeCol));
 
 
 					//BUILD SERVERSIDE RANGE REQUEST
@@ -338,7 +340,7 @@ $.fn.slickFilters = function(options) {
 				//HANDLE DATE FILTER
 				else if (colInfo.sfFilter == 'date') {
 
-					var startRangeInput = $('<input type="date" placeholder="' + title + '" class="form-control form-control-sm p-1"' + (!filterable ? "disabled" : '') + ' style="' + (!filterable ? "opacity:0; pointer-events: none;" : '') + '">').on('keyup change search', function(e) { api.draw(); }).appendTo($(cell));
+					var startRangeInput = $('<input type="date" onfocus="this.showPicker()" placeholder="' + title + '" class="form-control form-control-sm p-1"' + (!filterable ? "disabled" : '') + ' style="' + (!filterable ? "opacity:0; pointer-events: none;" : '') + '">').on('keyup change search', function(e) { api.draw(); }).appendTo($(cell));
 
 					//BUILD SERVERSIDE RANGE REQUEST
 					if(typeof(options.serverSide) !== 'undefined' && options.serverSide == true){							
