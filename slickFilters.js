@@ -405,11 +405,8 @@ $.fn.slickFilters = function(options) {
 		//CHECK IF SERVER SIDE
 		if (typeof(options.serverSide) !== 'undefined' && options.serverSide == true) {
 
-			//FORCE AJAX DATA FUNCTION
-			if(typeof(options.ajax) != 'undefined' && typeof(options.ajax.data) === 'undefined') options.ajax.data = function(d){};
-
 			//CHECK IF AJAX DATA IS A FUNCTION
-			if(typeof(options.ajax.data) === 'function') {
+			if(typeof(options.ajax.data) === 'function'){
 
 				//CLONE THE DATA FUNCTION
 				Function.prototype.cloneForSlickDataTableFilters = function() {
@@ -440,6 +437,22 @@ $.fn.slickFilters = function(options) {
 						d._ranges = tempRanges;
 					}
 					newDataFunction(d);
+				}
+			}
+			else if(typeof(options.ajax.data) === 'undefined'){
+				settings.ajax.data = function(d){
+					if(ranges.length) {
+						var tempRanges = {};
+						for (var x = 0; x < ranges.length; x++) {
+							tempRanges[ranges[x].col] = {
+								search: ranges[x].search,
+								start: $(ranges[x].start).val(),
+								end: $(ranges[x].end).val(),
+								type: ranges[x].type,
+							};
+						}
+						d._ranges = tempRanges;
+					}
 				}
 			}
 		}
