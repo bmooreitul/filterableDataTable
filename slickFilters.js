@@ -405,8 +405,11 @@ $.fn.slickFilters = function(options) {
 		//CHECK IF SERVER SIDE
 		if (typeof(options.serverSide) !== 'undefined' && options.serverSide == true) {
 
+			//FORCE AJAX DATA FUNCTION
+			if(typeof(options.ajax) != 'undefined' && typeof(options.ajax.data) === 'undefined') options.ajax.data = function(d){};
+
 			//CHECK IF AJAX DATA IS A FUNCTION
-			if (typeof(options.ajax.data) === 'function') {
+			if(typeof(options.ajax.data) === 'function') {
 
 				//CLONE THE DATA FUNCTION
 				Function.prototype.cloneForSlickDataTableFilters = function() {
