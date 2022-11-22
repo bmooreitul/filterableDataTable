@@ -340,32 +340,61 @@ $.fn.slickFilters = function(options) {
 				//HANDLE DATE FILTER
 				else if (colInfo.sfFilter == 'date') {
 
-					var startRangeInput = $('<input type="date" onfocus="this.showPicker()" placeholder="' + title + '" class="form-control form-control-sm p-1"' + (!filterable ? "disabled" : '') + ' style="' + (!filterable ? "opacity:0; pointer-events: none;" : '') + '">').on('keyup change search', function(e) { api.draw(); }).appendTo($(cell));
+					if(typeof(options.serverSide) !== 'undefined' && options.serverSide == true){
 
-					//BUILD SERVERSIDE RANGE REQUEST
-					if(typeof(options.serverSide) !== 'undefined' && options.serverSide == true){							
+						//BUILD THE DEFAULT INPUT FILTER
+						$('<input type="date" onfocus="this.showPicker()" placeholder="' + title + '" class="form-control form-control-sm p-1"' + (!filterable ? "disabled" : '') + ' style="' + (!filterable ? "opacity:0; pointer-events: none;" : '') + '">').on('keyup change search', function(e) {
 
-						api.column(colIdx).search(this.value).draw();
+							//try{
+								api.column(colIdx).search(this.value).draw();
+							//}	
+							//catch{
+								
+							//}	
+
+							//ALLOW SEARCHING THIS COLUMN
+							//api.column(colIdx).search(this.value).draw();
+
+						}).appendTo($(cell));
+					}
+					else{
+
+						var startRangeInput = $('<input type="date" onfocus="this.showPicker()" placeholder="' + title + '" class="form-control form-control-sm p-1"' + (!filterable ? "disabled" : '') + ' style="' + (!filterable ? "opacity:0; pointer-events: none;" : '') + '">').on('keyup change search', function(e) { api.draw(); }).appendTo($(cell));
+
+						//BUILD SERVERSIDE RANGE REQUEST
+						if(typeof(options.serverSide) !== 'undefined' && options.serverSide == true){	
+
+							//try{
+								api.column(colIdx).search(this.value).draw();
+							//}	
+							//catch{
+
+							//}			
+
+							
+						}
+
+						//NOT SERVERSIDE REQUEST SO LETS BUILD A FILTER FOR EXISTING DATA
+						else {
+
+							//DYNAMICALLY ADD THE SEARCH FILTER FOR EXISTING ROWS
+							$.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+
+								//VALIDATE DATES
+								var min 			= $(startRangeInput).val().length == 10 ? new Date($(startRangeInput).val()+' 00:00:00') : null;
+								var max 			= $(startRangeInput).val().length == 10 ? new Date($(startRangeInput).val()+' 23:59:59') : null ;
+								var searchableCol 	= new Date(data[colIdx]);
+
+								//FILTER BY THE MIN AND MAX DATE RANGE AND RETURN TRUE FOR VALID RECORDS
+								if((min === null && max === null ) || (min === null && searchableCol <= max ) || (min <= searchableCol   && max === null ) || (min <= searchableCol   && searchableCol <= max )) return true;
+
+								//RETURN FALSE FOR RECORDS THAT DONT MATCH THE DATE RANGE
+								return false;
+							});
+						}
 					}
 
-					//NOT SERVERSIDE REQUEST SO LETS BUILD A FILTER FOR EXISTING DATA
-					else {
-
-						//DYNAMICALLY ADD THE SEARCH FILTER FOR EXISTING ROWS
-						$.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
-
-							//VALIDATE DATES
-							var min 			= $(startRangeInput).val().length == 10 ? new Date($(startRangeInput).val()+' 00:00:00') : null;
-							var max 			= $(startRangeInput).val().length == 10 ? new Date($(startRangeInput).val()+' 23:59:59') : null ;
-							var searchableCol 	= new Date(data[colIdx]);
-
-							//FILTER BY THE MIN AND MAX DATE RANGE AND RETURN TRUE FOR VALID RECORDS
-							if((min === null && max === null ) || (min === null && searchableCol <= max ) || (min <= searchableCol   && max === null ) || (min <= searchableCol   && searchableCol <= max )) return true;
-
-							//RETURN FALSE FOR RECORDS THAT DONT MATCH THE DATE RANGE
-							return false;
-						});
-					}
+					
 
 					filterRendered = true;
 				}
@@ -376,8 +405,15 @@ $.fn.slickFilters = function(options) {
 					//BUILD THE DEFAULT INPUT FILTER
 					$('<input type="number" step="any" placeholder="' + title + '" class="form-control form-control-sm p-1"' + (!filterable ? "disabled" : '') + ' style="' + (!filterable ? "opacity:0; pointer-events: none;" : '') + '">').on('keyup change search', function(e) {
 
+						try{
+							api.column(colIdx).search(this.value).draw();
+						}	
+						catch{
+							
+						}	
+
 						//ALLOW SEARCHING THIS COLUMN
-						api.column(colIdx).search(this.value).draw();
+						//api.column(colIdx).search(this.value).draw();
 
 					}).appendTo($(cell));
 
@@ -390,8 +426,15 @@ $.fn.slickFilters = function(options) {
 					//BUILD THE DEFAULT INPUT FILTER
 					$('<input type="search" placeholder="' + title + '" class="form-control form-control-sm p-1"' + (!filterable ? "disabled" : '') + ' style="' + (!filterable ? "opacity:0; pointer-events: none;" : '') + '">').on('keyup change search', function(e) {
 
+						try{
+							api.column(colIdx).search(this.value).draw();
+						}	
+						catch{
+							
+						}	
+
 						//ALLOW SEARCHING THIS COLUMN
-						api.column(colIdx).search(this.value).draw();
+						//api.column(colIdx).search(this.value).draw();
 
 					}).appendTo($(cell));
 				}
@@ -424,7 +467,7 @@ $.fn.slickFilters = function(options) {
 
 				//OVERRIDE THE AJAX DATA FUNCTION
 				settings.ajax.data = function(d) {
-					if (ranges.length) {
+					if(ranges.length) {
 						var tempRanges = {};
 						for (var x = 0; x < ranges.length; x++) {
 							tempRanges[ranges[x].col] = {
