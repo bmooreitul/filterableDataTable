@@ -345,12 +345,12 @@ $.fn.slickFilters = function(options) {
 						//BUILD THE DEFAULT INPUT FILTER
 						$('<input type="date" onfocus="this.showPicker()" placeholder="' + title + '" class="form-control form-control-sm p-1"' + (!filterable ? "disabled" : '') + ' style="' + (!filterable ? "opacity:0; pointer-events: none;" : '') + '">').on('keyup change search', function(e) {
 
-							//try{
+							try{
 								api.column(colIdx).search(this.value).draw();
-							//}	
-							//catch{
-								
-							//}	
+							}	
+							catch{
+								//SILENT
+							}	
 
 							//ALLOW SEARCHING THIS COLUMN
 							//api.column(colIdx).search(this.value).draw();
