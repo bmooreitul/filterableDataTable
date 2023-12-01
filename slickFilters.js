@@ -364,12 +364,12 @@ $.fn.slickFilters = function(options) {
 						//BUILD SERVERSIDE RANGE REQUEST
 						if(typeof(options.serverSide) !== 'undefined' && options.serverSide == true){	
 
-							//try{
+							try{
 								api.column(colIdx).search(this.value).draw();
-							//}	
-							//catch{
-
-							//}			
+							}	
+							catch{
+								//SILENT
+							}			
 
 							
 						}
