@@ -167,7 +167,10 @@ $.fn.slickFilters = function(options) {
 	                if(settings.aoPreSearchCols[x].bRegex) val = val.substring(1, val.length-1);
 
 	                //SET THE SAVED STATE VALUE
-	                if(val.trim().length) $(input).val(val);
+	                if(val.trim().length){
+	                	$(input).val(val);
+	                	$(input).closest('th').addClass('slick-filtered table-primary');
+	                } 
 	            }
 	        }
 		}
@@ -195,6 +198,37 @@ $.fn.slickFilters = function(options) {
 			options.initComplete = defaultInitComplete;
 		}
 	}	
+
+	var defaultDrawCallback = function(settings, json){
+
+		$(this).find('.slick-datatable-filters > th > :input').each(function(k, v){
+			if($(this).val().length){
+				$(this).closest('th').addClass('slick-filtered').addClass('table-primary');
+			}
+			else{
+
+				var remove = true;
+				if($(this).closest('th :input').length > 1){
+					$(this).closest('th :input').each(function(){
+						if($(this).val().length) remove = false;
+					});
+				}
+
+				if(remove) $(this).closest('th').removeClass('slick-filtered').removeClass('table-primary');
+			}
+		});
+		console.log('default draw callback');
+	}
+
+	if(typeof(options.fnDrawCallback) !== 'undefined' && typeof(options.fnDrawCallback) == 'function'){
+
+		var newDataFunction = options.fnDrawCallback;
+
+		options.fnDrawCallback = function(settings, json){
+			defaultDrawCallback.call(this, settings, json);
+			newDataFunction.call(this, settings, json);
+		}
+	}
 
 	//GET THE TABLE
 	var table = $(this);
@@ -263,9 +297,7 @@ $.fn.slickFilters = function(options) {
 				colInfo = $.extend(true, $(cell).data(), options.columns[colIdx]);
 
 				//HANDLE SELECT FILTERS
-				if (colInfo.sfFilter == 'select') {
-
-					
+				if (colInfo.sfFilter == 'select') {					
 
 					if (typeof(colInfo.sfSelectOptions) == 'object') {
 
@@ -287,6 +319,9 @@ $.fn.slickFilters = function(options) {
 							$(selectInput).on('change', function(e) {
 								if (!this.value.length) api.column(colIdx).search(this.value).draw();
 								else api.column(colIdx).search("^" + this.value + "$", true, false, true).draw();
+
+								if($(this).val().length) $(this).closest('th').addClass('table-primary').addClass('slick-filtered');
+								else $(this).closest('th').removeClass('table-primary').removeClass('slick-filtered');
 							}).appendTo($(cell));                        
 						}
 					}
@@ -544,5 +579,7 @@ $.fn.slickFilters = function(options) {
 				}
 			}
 		}
+
+		
 	}).DataTable(options);
 }
