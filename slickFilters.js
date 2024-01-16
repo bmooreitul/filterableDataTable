@@ -112,26 +112,28 @@
 */
 $.fn.slickFilters = function(options) {
 
+	//DEFINE DEFAULTS
 	var defaults = {
-		slickFilter: true,
-		processing: true,
-		serverSide: true,
-		autoWidth: false,
-		orderCellsTop: true,
-		language: {
-			lengthMenu: '<span class="d-inline-block">Show&nbsp;</span> <select class="form-select d-inline-block my-0" style="width:100px;">' +
-			'<option value="5">5</option>' +
-			'<option value="10">10</option>' +
-			'<option value="25">25</option>' +
-			'<option value="50">50</option>' +
-			'<option value="100">100</option>' +
+		slickFilter 	: true,
+		processing 		: true,
+		serverSide 		: true,
+		autoWidth 		: false,
+		orderCellsTop 	: true,
+		language 		: {
+			lengthMenu 	:
+			'<span class="d-inline-block">Show&nbsp;</span> <select class="form-select d-inline-block my-0" style="width:100px;">' +
+				'<option value="5">5</option>' +
+				'<option value="10">10</option>' +
+				'<option value="25">25</option>' +
+				'<option value="50">50</option>' +
+				'<option value="100">100</option>' +
 			'</select>',
-			//sInfoFiltered: '',
 			sInfo: 'Showing _START_ to _END_ of _TOTAL_ Results',
 		},
 		dom: "<'row' <'col'>>t<'row p-3' <'col'i><'col text-end align-items-top'l><'col-auto'p>>",
 	}
 
+	//FORCE OPTIONS TO OBJECT
 	if(typeof(options) !== 'object') options = {};
 
 	//OVERRIDE SERVERSIDE
@@ -142,6 +144,57 @@ $.fn.slickFilters = function(options) {
 
 	//BUILD THE OPTIONS
 	var options = $.extend(true, defaults, options);
+
+	//CHECK IF STATE SAVE IS ENABLED
+	if(typeof(options.stateSave) !== 'undefined' && options.stateSave === true){
+
+		//DEFINE THE DEFAULT INIT COMPLETE FUNCTION
+		var defaultInitComplete = function(settings, json){
+
+			//SET STATE SAVED FILTER VALUES
+	        if(typeof(settings.aoPreSearchCols) == 'object') for(var x in settings.aoPreSearchCols) if(typeof(settings.aoPreSearchCols[x].sSearch) != 'Undefined' && settings.aoPreSearchCols[x].sSearch.length){
+
+	            //TRY TO FIND THE INPUT FOR THE FILTER COLUMN
+	            var input = $(this).find('thead tr.slick-datatable-filters th:nth-child('+(Number(x)+1)+') > :input');
+
+	            //IF THE INPUT EXISTS
+	            if($(input).length){
+
+	                //GET THE SAVED STATE VALUE
+	                var val = settings.aoPreSearchCols[x].sSearch;
+
+	                //PARSE THE SAVED STATE VALUE
+	                if(settings.aoPreSearchCols[x].bRegex) val = val.substring(1, val.length-1);
+
+	                //SET THE SAVED STATE VALUE
+	                if(val.trim().length) $(input).val(val);
+	            }
+	        }
+		}
+
+
+		//CHECK IF AN INIT COMPLETE FUNCTION WAS PASSED IN THE OPTIONS
+		if(typeof(options.initComplete) == 'function'){
+
+			//SET THE FUNCTION AS A VARIABLE
+			var newInitComplete = options.initComplete;
+
+			//REDEFINE THE FUNCTION
+			options.initComplete = function(settings, json){
+
+				//CALL THE DEFAULT INIT COMPLETE
+				defaultInitComplete.call(this, settings, json);
+
+				//CALL THE NEW INIT COMPLETE
+				newInitComplete.call(this, settings, json);
+			}		
+		}
+
+		//NO INIT COMPLETE FUNCTION WAS PASSED SO LETS USE THE DEFAULT
+		else{
+			options.initComplete = defaultInitComplete;
+		}
+	}	
 
 	//GET THE TABLE
 	var table = $(this);
@@ -190,7 +243,8 @@ $.fn.slickFilters = function(options) {
 			});
 
 			//FLAG AS FILTERABLE OR NOT
-			var filterable = $(cell).data('filterable') == 'false' ? false : true;
+			var filterable = $(cell).data('filterable') == false ? false : true;
+			if($(cell).data('searchable') == false) filterable = false;
 
 			//DEFAULT TO NO FILTER RENDERED
 			var filterRendered = false;
@@ -200,16 +254,10 @@ $.fn.slickFilters = function(options) {
 				options.columns = [];								
 			}
 
-			if(setColInfo){
-				options.columns[colIdx] = $(cell).data();
-			}
-
-
+			if(setColInfo) options.columns[colIdx] = $(cell).data();
 
 			//IF FILTERABLE
-			if (filterable) {
-
-
+			if(filterable){
 
 				//GET THE COLUMN DATA
 				colInfo = $.extend(true, $(cell).data(), options.columns[colIdx]);
@@ -295,7 +343,7 @@ $.fn.slickFilters = function(options) {
 					var startRangeCol 	= $('<div class="slick-filter-range-col mb-1"></div>').appendTo($(rangeWrap));
 					var endRangeCol 	= $('<div class="slick-filter-range-col"></div>').appendTo($(rangeWrap));
 
-					var startRangeInput 	= $('<input type="date" class="form-control form-control-sm p-1" placeholder="From" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-placement="left" data-bs-content="From" id="' + rangeName + '-start" onfocus="this.showPicker()">').on('keyup change search', function(e) { api.draw(); }).appendTo($(startRangeCol));
+					var startRangeInput = $('<input type="date" class="form-control form-control-sm p-1" placeholder="From" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-placement="left" data-bs-content="From" id="' + rangeName + '-start" onfocus="this.showPicker()">').on('keyup change search', function(e) { api.draw(); }).appendTo($(startRangeCol));
 					var endRangeInput 	= $('<input type="date" class="form-control form-control-sm p-1" placeholder="To" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-placement="left" data-bs-content="To" id="' + rangeName + '-end" onfocus="this.showPicker()">').on('keyup change search', function(e) { api.draw(); }).appendTo($(endRangeCol));
 
 
@@ -446,7 +494,7 @@ $.fn.slickFilters = function(options) {
 
 
 		//CHECK IF SERVER SIDE
-		if (typeof(options.serverSide) !== 'undefined' && options.serverSide == true) {
+		if(typeof(options.serverSide) !== 'undefined' && options.serverSide == true) {
 
 			//CHECK IF AJAX DATA IS A FUNCTION
 			if(typeof(options.ajax.data) === 'function'){
@@ -454,11 +502,8 @@ $.fn.slickFilters = function(options) {
 				//CLONE THE DATA FUNCTION
 				Function.prototype.cloneForSlickDataTableFilters = function() {
 					var that = this;
-					var temp = function temporary() {
-						return that.apply(this, arguments);
-					};
-					for (var key in this)
-						if (this.hasOwnProperty(key)) temp[key] = this[key];
+					var temp = function temporary() { return that.apply(this, arguments); };
+					for(var key in this) if(this.hasOwnProperty(key)) temp[key] = this[key];
 					return temp;
 				};
 
