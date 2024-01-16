@@ -295,8 +295,8 @@ $.fn.slickFilters = function(options) {
 					var startRangeCol 	= $('<div class="slick-filter-range-col mb-1"></div>').appendTo($(rangeWrap));
 					var endRangeCol 	= $('<div class="slick-filter-range-col"></div>').appendTo($(rangeWrap));
 
-					var startRangeInput = $('<input type="date" class="form-control form-control-sm p-1" placeholder="From" id="' + rangeName + '-start" onfocus="this.showPicker()">').on('keyup change search', function(e) { api.draw(); }).appendTo($(startRangeCol));
-					var endRangeInput 	= $('<input type="date" class="form-control form-control-sm p-1" placeholder="To" id="' + rangeName + '-end" onfocus="this.showPicker()">').on('keyup change search', function(e) { api.draw(); }).appendTo($(endRangeCol));
+					var startRangeInput 	= $('<input type="date" class="form-control form-control-sm p-1" placeholder="From" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-placement="left" data-bs-content="From" id="' + rangeName + '-start" onfocus="this.showPicker()">').on('keyup change search', function(e) { api.draw(); }).appendTo($(startRangeCol));
+					var endRangeInput 	= $('<input type="date" class="form-control form-control-sm p-1" placeholder="To" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-placement="left" data-bs-content="To" id="' + rangeName + '-end" onfocus="this.showPicker()">').on('keyup change search', function(e) { api.draw(); }).appendTo($(endRangeCol));
 
 
 					//BUILD SERVERSIDE RANGE REQUEST
