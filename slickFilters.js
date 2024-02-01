@@ -217,7 +217,7 @@ $.fn.slickFilters = function(options) {
 				if(remove) $(this).closest('th').removeClass('slick-filtered').removeClass('table-primary');
 			}
 		});
-		console.log('default draw callback');
+		//console.log('default draw callback');
 	}
 
 	if(typeof(options.fnDrawCallback) !== 'undefined' && typeof(options.fnDrawCallback) == 'function'){
