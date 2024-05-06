@@ -357,9 +357,24 @@ $.fn.slickFilters = function(options) {
 						
 
 						$.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
-							var min 			= parseInt($(startRangeInput).val(), 10);
-							var max 			= parseInt($(endRangeInput).val(), 10);
-							var searchableCol 	= parseFloat(data[colIdx]) || 0; // use data for the age column
+							var minVal = $(startRangeInput).val().trim();
+							var maxVal = $(endRangeInput).val().trim();
+
+							if(!minVal.length && !maxVal.length) return true;
+
+							minVal = minVal.length ? parseFloat(minVal.replace(/[^\d.]+/g, "")) : parseInt(minVal);
+							maxVal = maxVal.length ? parseFloat(maxVal.replace(/[^\d.]+/g, "")) : parseInt(maxVal);
+
+							searchableCol = parseFloat((data[colIdx]+'').replace(/[^\d.]+/g, ""));
+
+							if(isNaN(searchableCol)) return false;
+
+							var min = minVal;
+							var max = maxVal;
+
+							//var min 			= parseInt($(startRangeInput).val(), 10);
+							//var max 			= parseInt($(endRangeInput).val(), 10);
+							//var searchableCol 	= parseFloat(data[colIdx]) || 0; // use data for the age column
 
 							if((isNaN(min) && isNaN(max)) || (isNaN(min) && searchableCol <= max) || (min <= searchableCol && isNaN(max)) || (min <= searchableCol && searchableCol <= max)) return true;
 							return false;
