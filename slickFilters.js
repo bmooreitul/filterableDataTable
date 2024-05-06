@@ -110,7 +110,34 @@
 		}
 	}
 */
+
+
+
+class slickFilterStorage {
+
+	data;
+
+	constructor(){
+		this.data = (window.localStorage.getItem(window.location.href+'-slick-filter-storage') ? JSON.parse(window.localStorage.getItem(window.location.href+'-slick-filter-storage')) : {});
+	}
+
+	/*
+	getDescendantProp = (obj, path) => (
+	    path.split('.').reduce((acc, part) => acc && acc[part], obj)
+	);
+	*/
+
+	add(key, val){
+		this.data[key] = val;
+		window.localStorage.setItem(window.location.href+'-slick-filter-storage', JSON.stringify(this.data));
+	}
+
+
+}
+
 $.fn.slickFilters = function(options) {
+
+	var thatTable = $(this);
 
 	//DEFINE DEFAULTS
 	var defaults = {
@@ -119,6 +146,18 @@ $.fn.slickFilters = function(options) {
 		serverSide 		: true,
 		autoWidth 		: false,
 		orderCellsTop 	: true,
+		stateSaveParams: function(settings, data) {
+			data.filter_values = function(){
+				var res = [];
+				$.each($(thatTable).find('.slick-datatable-filters > th'), function(k, th){
+					res[k] = [];
+					$.each($(th).find(':input'), function(){
+						res[k].push($(this).val());
+					});
+				});
+				return res;
+			}
+		},
 		language 		: {
 			lengthMenu 	:
 			'<span class="d-inline-block">Show&nbsp;</span> <select class="form-select d-inline-block my-0" style="width:100px;">' +
@@ -151,6 +190,8 @@ $.fn.slickFilters = function(options) {
 		//DEFINE THE DEFAULT INIT COMPLETE FUNCTION
 		var defaultInitComplete = function(settings, json){
 
+			console.log(settings);
+
 			//SET STATE SAVED FILTER VALUES
 	        if(typeof(settings.aoPreSearchCols) == 'object') for(var x in settings.aoPreSearchCols) if(typeof(settings.aoPreSearchCols[x].sSearch) != 'Undefined' && settings.aoPreSearchCols[x].sSearch.length){
 
@@ -169,9 +210,11 @@ $.fn.slickFilters = function(options) {
 	                //SET THE SAVED STATE VALUE
 	                if(val.trim().length){
 	                	$(input).val(val);
-	                	$(input).closest('th').addClass('slick-filtered table-primary');
+	                	$(input).closest('th').addClass('slick-filtered');
 	                } 
 	            }
+
+
 	        }
 		}
 
@@ -203,7 +246,7 @@ $.fn.slickFilters = function(options) {
 
 		$(this).find('.slick-datatable-filters > th > :input').each(function(k, v){
 			if($(this).val().length){
-				$(this).closest('th').addClass('slick-filtered').addClass('table-primary');
+				$(this).closest('th').addClass('slick-filtered');
 			}
 			else{
 
@@ -214,7 +257,7 @@ $.fn.slickFilters = function(options) {
 					});
 				}
 
-				if(remove) $(this).closest('th').removeClass('slick-filtered').removeClass('table-primary');
+				if(remove) $(this).closest('th').removeClass('slick-filtered');
 			}
 		});
 		//console.log('default draw callback');
@@ -320,8 +363,8 @@ $.fn.slickFilters = function(options) {
 								if (!this.value.length) api.column(colIdx).search(this.value).draw();
 								else api.column(colIdx).search("^" + this.value + "$", true, false, true).draw();
 
-								if($(this).val().length) $(this).closest('th').addClass('table-primary').addClass('slick-filtered');
-								else $(this).closest('th').removeClass('table-primary').removeClass('slick-filtered');
+								if($(this).val().length) $(this).closest('th').addClass('slick-filtered');
+								else $(this).closest('th').removeClass('slick-filtered');
 							}).appendTo($(cell));                        
 						}
 					}
@@ -336,9 +379,34 @@ $.fn.slickFilters = function(options) {
 					var rangeWrap 		= $('<div class="slick-filter-range-row"></div>').appendTo($(cell));
 					var startRangeCol 	= $('<div class="slick-filter-range-col mb-1"></div>').appendTo($(rangeWrap));
 					var endRangeCol 	= $('<div class="slick-filter-range-col"></div>').appendTo($(rangeWrap));
+					
+					var startRangeInput = $('<input type="number" step="any" class="form-control form-control-sm p-1" placeholder="From ' + title + '" id="' + rangeName + '-start">');
 
-					var startRangeInput = $('<input type="number" step="any" class="form-control form-control-sm p-1" placeholder="From ' + title + '" id="' + rangeName + '-start">').on('keyup change search', function(e) { api.draw(); }).appendTo($(startRangeCol));
-					var endRangeInput = $('<input type="number" step="any" class="form-control form-control-sm p-1" placeholder="To ' + title + '" id="' + rangeName + '-end">').on('keyup change search', function(e) { api.draw(); }).appendTo($(endRangeCol));
+					//CHECK IF STATE SAVE IS ENABLED
+					if(typeof(options.stateSave) !== 'undefined' && options.stateSave === true) if(checkStartVal = (new slickFilterStorage).data[$(table).attr('id')+'.'+colIdx+'.range.start']) $(startRangeInput).val(checkStartVal);
+
+					var endRangeInput = $('<input type="number" step="any" class="form-control form-control-sm p-1" placeholder="To ' + title + '" id="' + rangeName + '-end">');
+
+					//CHECK IF STATE SAVE IS ENABLED
+					if(typeof(options.stateSave) !== 'undefined' && options.stateSave === true) if(checkEndVal = (new slickFilterStorage).data[$(table).attr('id')+'.'+colIdx+'.range.end']) $(endRangeInput).val(checkEndVal);					
+
+					if(typeof(options.stateSave) !== 'undefined' && options.stateSave === true){
+
+						startRangeInput.on('keyup change search', function(e) {
+							(new slickFilterStorage).add($(this).closest('table').attr('id')+'.'+colIdx+'.range.start', $(this).val());
+							api.draw(); 
+						}).appendTo($(startRangeCol));
+
+						endRangeInput.on('keyup change search', function(e) { 						
+							(new slickFilterStorage).add($(this).closest('table').attr('id')+'.'+colIdx+'.range.end', $(this).val());
+							api.draw(); 
+						}).appendTo($(endRangeCol));
+					}
+					else{
+						
+						startRangeInput.on('keyup change search', function(e) { api.draw(); }).appendTo($(startRangeCol));
+						endRangeInput.on('keyup change search', function(e) { api.draw(); }).appendTo($(endRangeCol));
+					}
 
 					if (typeof(options.serverSide) !== 'undefined' && options.serverSide == true) {										
 
@@ -357,6 +425,8 @@ $.fn.slickFilters = function(options) {
 						
 
 						$.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+
+							//console.log(settings, data, dataIndex);
 							var minVal = $(startRangeInput).val().trim();
 							var maxVal = $(endRangeInput).val().trim();
 
@@ -371,6 +441,17 @@ $.fn.slickFilters = function(options) {
 
 							var min = minVal;
 							var max = maxVal;
+
+							//if(typeof(settings.aoStateSaveParams.ranges) == 'undefined') settings.aoStateSaveParams.ranges = {};
+							//settings.aoStateSaveParams.ranges[colIdx] = {
+							//	start: $(startRangeInput).val(),
+							//	end: $(endRangeInput).val()
+							//}
+
+							//var t = $(settings.nTable);
+							//console.log(t);
+
+							//api.state.save();
 
 							//var min 			= parseInt($(startRangeInput).val(), 10);
 							//var max 			= parseInt($(endRangeInput).val(), 10);
@@ -393,8 +474,37 @@ $.fn.slickFilters = function(options) {
 					var startRangeCol 	= $('<div class="slick-filter-range-col mb-1"></div>').appendTo($(rangeWrap));
 					var endRangeCol 	= $('<div class="slick-filter-range-col"></div>').appendTo($(rangeWrap));
 
-					var startRangeInput = $('<input type="date" class="form-control form-control-sm p-1" placeholder="From" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-placement="left" data-bs-content="From" id="' + rangeName + '-start" onfocus="this.showPicker()">').on('keyup change search', function(e) { api.draw(); }).appendTo($(startRangeCol));
-					var endRangeInput 	= $('<input type="date" class="form-control form-control-sm p-1" placeholder="To" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-placement="left" data-bs-content="To" id="' + rangeName + '-end" onfocus="this.showPicker()">').on('keyup change search', function(e) { api.draw(); }).appendTo($(endRangeCol));
+					var startRangeInput = $('<input type="date" class="form-control form-control-sm p-1" placeholder="From" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-placement="left" data-bs-content="From" id="' + rangeName + '-start" onfocus="this.showPicker()">');
+
+					//CHECK IF STATE SAVE IS ENABLED
+					if(typeof(options.stateSave) !== 'undefined' && options.stateSave === true) if(checkStartVal = (new slickFilterStorage).data[$(table).attr('id')+'.'+colIdx+'.range.start']) $(startRangeInput).val(checkStartVal);
+
+					//startRangeInput.on('keyup change search', function(e) { api.draw(); }).appendTo($(startRangeCol));
+
+					var endRangeInput 	= $('<input type="date" class="form-control form-control-sm p-1" placeholder="To" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-placement="left" data-bs-content="To" id="' + rangeName + '-end" onfocus="this.showPicker()">')
+
+					//CHECK IF STATE SAVE IS ENABLED
+					if(typeof(options.stateSave) !== 'undefined' && options.stateSave === true) if(checkEndVal = (new slickFilterStorage).data[$(table).attr('id')+'.'+colIdx+'.range.end']) $(endRangeInput).val(checkEndVal);	
+
+					if(typeof(options.stateSave) !== 'undefined' && options.stateSave === true){
+
+						startRangeInput.on('keyup change search', function(e) {
+							(new slickFilterStorage).add($(this).closest('table').attr('id')+'.'+colIdx+'.range.start', $(this).val());
+							api.draw(); 
+						}).appendTo($(startRangeCol));
+
+						endRangeInput.on('keyup change search', function(e) { 						
+							(new slickFilterStorage).add($(this).closest('table').attr('id')+'.'+colIdx+'.range.end', $(this).val());
+							api.draw(); 
+						}).appendTo($(endRangeCol));
+					}
+					else{
+						
+						startRangeInput.on('keyup change search', function(e) { api.draw(); }).appendTo($(startRangeCol));
+						endRangeInput.on('keyup change search', function(e) { api.draw(); }).appendTo($(endRangeCol));
+					}
+
+					//endRangeInput.on('keyup change search', function(e) { api.draw(); }).appendTo($(endRangeCol));
 
 
 					//BUILD SERVERSIDE RANGE REQUEST
@@ -425,7 +535,7 @@ $.fn.slickFilters = function(options) {
 							var searchableCol 	= new Date(data[colIdx]);
 
 							//FILTER BY THE MIN AND MAX DATE RANGE AND RETURN TRUE FOR VALID RECORDS
-							if((min === null && max === null ) || (min === null && searchableCol <= max ) || (min <= searchableCol   && max === null ) || (min <= searchableCol   && searchableCol <= max )) return true;
+							if((min === null && max === null ) || (min === null && searchableCol <= max ) || (min <= searchableCol   && max === null ) || (min <= searchableCol && searchableCol <= max )) return true;
 
 							//RETURN FALSE FOR RECORDS THAT DONT MATCH THE DATE RANGE
 							return false;
