@@ -358,12 +358,12 @@ $.fn.slickFilters = function(options) {
 							//BUILD THE DROPDOWN OPTIONS
 							for ([key, value] of Object.entries(colInfo.sfSelectOptions)) $(selectInput).append('<option value="' + (Array.isArray(colInfo.sfSelectOptions) ? value : key) + '">' + value + '</option>');
 
-							var selectInputInitial = selectInput.val(); // cache selected value, before reordering
+							//var selectInputInitial = selectInput.val(); // cache selected value, before reordering
 							var opts_list = selectInput.find('option');
 							opts_list.sort(function(a, b) { return $(a).text() > $(b).text() ? 1 : -1; });
 							selectInput.html('').append('<option value="">All</option>');
 							selectInput.append(opts_list);
-							selectInput.val(selectInputInitial); // set cached selected value
+							//selectInput.val(selectInputInitial); // set cached selected value
 							
 							//LISTEN FOR CHANGES AND APPEND TO THE CELL						
 							$(selectInput).on('change', function(e) {
