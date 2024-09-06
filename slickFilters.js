@@ -365,7 +365,7 @@ $.fn.slickFilters = function(options) {
 							//selectInputTemp.append(opts_list);
 
 							//INITIALIZE THE DROPDOWN
-							var selectInput = $('<select class="form-select form-select-sm"><option value="">All</option></select>');
+							var selectInput = $('<select class="form-select form-select-sm"><option selected value="">All</option></select>');
 							$(selectInput).append(opts_list);
 							//selectInput.val(selectInputInitial); // set cached selected value
 							
